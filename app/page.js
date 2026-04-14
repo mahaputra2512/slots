@@ -3,9 +3,15 @@
 import { useEffect, useRef, useState } from 'react';
 
 const symbols = ['🍒', '🍋', '⭐', '🔔', '7️⃣'];
+const INITIAL_BALANCE = 100000;
+const BASE_BET = 5000;
 
 function randomSymbol() {
   return symbols[Math.floor(Math.random() * symbols.length)];
+}
+
+function formatRupiah(amount) {
+  return new Intl.NumberFormat('id-ID').format(amount);
 }
 
 export default function HomePage() {
@@ -13,8 +19,13 @@ export default function HomePage() {
   const canvasRef = useRef(null);
   const savingRef = useRef(false);
   const [accuracy, setAccuracy] = useState(70);
+  const [maxWin, setMaxWin] = useState(50000);
+  const [maxStreak, setMaxStreak] = useState(3);
   const [slotResult, setSlotResult] = useState(['🍒', '🍋', '⭐']);
-  const [message, setMessage] = useState('Tekan SPIN untuk mencoba.');
+  const [message, setMessage] = useState('Tekan SPIN untuk mulai bermain.');
+  const [balance, setBalance] = useState(INITIAL_BALANCE);
+  const [streak, setStreak] = useState(0);
+  const [isSpinning, setIsSpinning] = useState(false);
 
   useEffect(() => {
     let timer;
@@ -80,27 +91,64 @@ export default function HomePage() {
   }, []);
 
   useEffect(() => {
-    const loadAccuracy = async () => {
+    const loadSettings = async () => {
       const response = await fetch('/api/settings');
       const data = await response.json();
       setAccuracy(data.accuracy);
+      setMaxWin(data.maxWin);
+      setMaxStreak(data.maxStreak);
     };
 
-    loadAccuracy();
+    loadSettings();
   }, []);
 
-  const spin = () => {
-    const won = Math.random() * 100 < accuracy;
-    const result = won
-      ? Array(3).fill(randomSymbol())
-      : [randomSymbol(), randomSymbol(), randomSymbol()];
+  const spin = async () => {
+    if (isSpinning) {
+      return;
+    }
 
-    setSlotResult(result);
-    setMessage(won ? 'MENANG!' : 'Coba lagi.');
+    if (balance < BASE_BET) {
+      setMessage('Saldo tidak cukup untuk SPIN.');
+      return;
+    }
+
+    setIsSpinning(true);
+    setBalance((prev) => prev - BASE_BET);
+
+    const animationTimer = setInterval(() => {
+      setSlotResult([randomSymbol(), randomSymbol(), randomSymbol()]);
+    }, 90);
+
+    await new Promise((resolve) => setTimeout(resolve, 1200));
+    clearInterval(animationTimer);
+
+    let won = Math.random() * 100 < accuracy;
+    if (streak >= maxStreak) {
+      won = false;
+    }
+
+    if (won) {
+      const winSymbol = randomSymbol();
+      const reward = Math.max(1000, Math.floor(Math.random() * maxWin) + 1);
+      setSlotResult([winSymbol, winSymbol, winSymbol]);
+      setBalance((prev) => prev + reward);
+      setStreak((prev) => prev + 1);
+      setMessage(`MENANG! +Rp ${formatRupiah(reward)}`);
+    } else {
+      let result = [randomSymbol(), randomSymbol(), randomSymbol()];
+      while (result[0] === result[1] && result[1] === result[2]) {
+        result = [randomSymbol(), randomSymbol(), randomSymbol()];
+      }
+      setSlotResult(result);
+      setStreak(0);
+      setMessage(`Belum beruntung. -Rp ${formatRupiah(BASE_BET)}`);
+    }
+
+    setIsSpinning(false);
   };
 
   return (
-    <main className="container">
+    <main className="container slot-page">
       <h1>SIMULASI MESIN SLOT</h1>
 
       <video
@@ -120,14 +168,35 @@ export default function HomePage() {
       />
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
-      <section className="card">
+      <section className="card slot-card">
         <h2>Mesin Slot</h2>
-        <p>
-          Akurasi saat ini: <strong>{accuracy}%</strong>
-        </p>
-        <div style={{ fontSize: 48, marginBottom: 12 }}>{slotResult.join(' ')}</div>
-        <button onClick={spin}>SPIN</button>
-        <p>{message}</p>
+        <div className="slot-stats">
+          <p>
+            Saldo: <strong>Rp {formatRupiah(balance)}</strong>
+          </p>
+          <p>
+            Bet: <strong>Rp {formatRupiah(BASE_BET)}</strong>
+          </p>
+          <p>
+            Akurasi: <strong>{accuracy}%</strong>
+          </p>
+          <p>
+            Streak: <strong>{streak}/{maxStreak}</strong>
+          </p>
+        </div>
+
+        <div className={`slot-reels ${isSpinning ? 'spinning' : ''}`}>
+          {slotResult.map((symbol, index) => (
+            <div key={`${symbol}-${index}`} className="slot-reel">
+              {symbol}
+            </div>
+          ))}
+        </div>
+
+        <button onClick={spin} disabled={isSpinning}>
+          {isSpinning ? 'SPINNING...' : 'SPIN'}
+        </button>
+        <p className="slot-message">{message}</p>
       </section>
     </main>
   );

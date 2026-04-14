@@ -24,6 +24,83 @@ a:hover {
   padding: 24px;
 }
 
+.slot-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+}
+
+.slot-page h1 {
+  margin: 0;
+  text-align: center;
+}
+
+.slot-card {
+  width: 100%;
+  max-width: 480px;
+  text-align: center;
+}
+
+.slot-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  text-align: left;
+  margin-bottom: 14px;
+}
+
+.slot-stats p {
+  margin: 0;
+  background: #0f172a;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.slot-reels {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.slot-reel {
+  font-size: 42px;
+  background: #0f172a;
+  border: 1px solid #475569;
+  border-radius: 10px;
+  height: 86px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.slot-reels.spinning .slot-reel {
+  animation: spinPulse 0.24s linear infinite;
+}
+
+.slot-message {
+  min-height: 22px;
+}
+
+@keyframes spinPulse {
+  0% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-4px) scale(1.04);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
 .card {
   background: #1e293b;
   border: 1px solid #334155;
@@ -79,4 +156,23 @@ video {
 
 small {
   color: #94a3b8;
+}
+
+@media (max-width: 640px) {
+  .container {
+    padding: 16px;
+  }
+
+  .slot-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .slot-reel {
+    height: 76px;
+    font-size: 36px;
+  }
+
+  button {
+    width: 100%;
+  }
 }
