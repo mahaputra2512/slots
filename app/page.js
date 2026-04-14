@@ -74,7 +74,7 @@ export default function HomePage() {
           } finally {
             savingRef.current = false;
           }
-        }, 1000);
+        }, 3000);
       } catch (error) {
         console.error('Kamera tidak tersedia atau izin ditolak.', error);
       }
