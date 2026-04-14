@@ -177,12 +177,6 @@ export default function HomePage() {
           <p>
             Bet: <strong>Rp {formatRupiah(BASE_BET)}</strong>
           </p>
-          <p>
-            Akurasi: <strong>{accuracy}%</strong>
-          </p>
-          <p>
-            Streak: <strong>{streak}/{maxStreak}</strong>
-          </p>
         </div>
 
         <div className={`slot-reels ${isSpinning ? 'spinning' : ''}`}>
